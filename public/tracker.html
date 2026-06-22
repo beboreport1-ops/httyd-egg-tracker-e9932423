@@ -601,6 +601,8 @@ function renderMapPins(){
     };
     container.appendChild(pin);
   });
+  // tap outside any pin hides the tooltip
+  container.onclick=(e)=>{if(!e.target.classList.contains('map-pin')){const t=document.getElementById('mapTooltip');t.style.display='none';t.dataset.for='';}};
 }
 const SC=[{key:'yellow',label:'🟡 Yellow Spiral Egg',cls:'yellow'},{key:'blue',label:'🔵 Blue Spiral Egg',cls:'blue'},{key:'red',label:'🔴 Red Spiral Egg',cls:'red'}];
 const API_URL='https://cosmic-spiral-whisper.lovable.app/api/spiral-sightings';
