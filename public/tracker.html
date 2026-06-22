@@ -606,7 +606,7 @@ function renderIslands(){
   }).join('');
   const now2=Date.now(),allOnCooldown=ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).every(i=>timers[i.name]&&(6*3600000-(now2-timers[i.name]))>0);
   const btn=document.getElementById('collectAllBtn');
-  if(btn){btn.classList.toggle('disabled',allOnCooldown);btn.textContent=allOnCooldown?'⏳ All on cooldown':'🥚 Collected All';}
+  if(btn){btn.classList.toggle('disabled',allOnCooldown);btn.innerHTML=allOnCooldown?'⏳ All on cooldown':'<img class="ic" src="/map/egg.png" alt=""> Collected All';}
 }
 document.getElementById('islandSearch').addEventListener('input',e=>{islandSearch=e.target.value;renderIslands();});
 let _leafletMap=null;
