@@ -281,6 +281,8 @@
   .next-check-label{font-size:0.65rem;color:var(--muted);margin-bottom:2px;font-family:'Cinzel',serif;letter-spacing:1.5px;text-transform:uppercase;}
   .next-check-value{font-size:1.05rem;font-weight:700;color:var(--amber);font-variant-numeric:tabular-nums;text-shadow:0 0 10px rgba(240,165,0,0.5);}
 
+  .ic{display:inline-block;width:1em;height:1em;vertical-align:-0.18em;object-fit:contain;filter:drop-shadow(0 0 3px rgba(255,140,40,0.5));}
+  .ic-lg{width:1.15em;height:1.15em;vertical-align:-0.22em;}
   .spiral-eggs{display:flex;flex-direction:column;gap:12px;}
   .spiral-card{
     background:linear-gradient(180deg,#1c1812,#120e09);
@@ -444,7 +446,7 @@
 </div>
 <div class="tab-section active" id="islandsTab">
   <div class="action-bar">
-    <button class="action-btn" id="collectAllBtn" onclick="collectAll()">🥚 Collected All</button>
+    <button class="action-btn" id="collectAllBtn" onclick="collectAll()"><img class="ic" src="/map/egg.png" alt=""> Collected All</button>
     <button class="action-btn reset-btn" onclick="resetAll()">↺ Reset All</button>
   </div>
   <div class="search-wrap"><input type="text" id="islandSearch" placeholder="Search island or egg..." /></div>
@@ -453,7 +455,7 @@
 <div class="tab-section" id="mapTab">
   <div class="map-info">Tap a marker for details · Drag to pan · Scroll/pinch to zoom</div>
   <div id="leafletMap"></div>
-  <div class="map-legend"><span>🥚 Egg nest</span><span>🪶 Flight trial</span></div>
+  <div class="map-legend"><span><img class="ic" src="/map/egg.png" alt=""> Egg nest</span><span><img class="ic" src="/map/fly.png" alt=""> Flight trial</span></div>
 </div>
 <div class="tab-section" id="spiralTab">
   <div class="spiral-info">
@@ -592,19 +594,19 @@ function renderIslands(){
     const cardCls='island-card'+(!hasSpots?' no-eggs':onCooldown?' on-cooldown':isReady?' is-ready':'');
     let collectHTML='';
     if(island.isSpiral)collectHTML=`<div class="island-right"><span style="font-size:0.7rem;color:var(--mythic)">🌀 Spiral tab</span></div>`;
-    else if(hasSpots){const btnCls='collect-btn'+(onCooldown?' on-cooldown':isReady?' is-ready':'');const btnLabel=onCooldown?'⏳ Collected':isReady?'✅ Ready!':'🥚 Collected';const timerHTML=onCooldown?`<div class="island-timer" id="it_${island.num}">${cd}</div>`:isReady?`<div class="island-timer is-ready">Respawned!</div>`:'';collectHTML=`<div class="island-right"><button class="${btnCls}" onclick="toggleIsland('${island.name}')">${btnLabel}</button>${timerHTML}</div>`;}
+    else if(hasSpots){const btnCls='collect-btn'+(onCooldown?' on-cooldown':isReady?' is-ready':'');const btnLabel=onCooldown?'⏳ Collected':isReady?'✅ Ready!':'<img class="ic" src="/map/egg.png" alt=""> Collected';const timerHTML=onCooldown?`<div class="island-timer" id="it_${island.num}">${cd}</div>`:isReady?`<div class="island-timer is-ready">Respawned!</div>`:'';collectHTML=`<div class="island-right"><button class="${btnCls}" onclick="toggleIsland('${island.name}')">${btnLabel}</button>${timerHTML}</div>`;}
     let spawnHTML='';
     if(!onCooldown){
       if(island.isSpiral)spawnHTML=`<div class="spawn-section"><div class="spawn-row"><span class="spawn-name">🔴 Red Spiral Egg</span><span style="color:var(--muted);font-size:0.65rem">special</span></div><div class="spawn-row"><span class="spawn-name">🔵 Blue Spiral Egg</span><span style="color:var(--muted);font-size:0.65rem">special</span></div><div class="spawn-row"><span class="spawn-name">🟡 Yellow Spiral Egg</span><span style="color:var(--muted);font-size:0.65rem">special</span></div></div>`;
       else if(island.spawns.length>0){const rows=island.spawns.map(({egg,pct})=>{const r=ER[egg]||'Common',c=RC[r],em=RE[r];if(pct===null)return `<div class="spawn-row"><span class="spawn-name">${em} ${egg}</span><div class="spawn-bar-wrap"><div class="spawn-bar" style="width:100%;background:${c};opacity:0.2"></div></div><span class="spawn-pct" style="font-style:italic">idk</span></div>`;return `<div class="spawn-row"><span class="spawn-name">${em} ${egg}</span><div class="spawn-bar-wrap"><div class="spawn-bar" style="width:${pct}%;background:${c}"></div></div><span class="spawn-pct">${pct}%</span></div>`;}).join('');spawnHTML=`<div class="spawn-section">${rows}</div>`;}
       else spawnHTML=`<div class="no-eggs-msg">No eggs on this island</div>`;
     }
-    const spotsLabel=island.isSpiral?'🌀 3 spiral':hasSpots?`🥚 ${island.spots}`:'No eggs';
+    const spotsLabel=island.isSpiral?'🌀 3 spiral':hasSpots?`<img class="ic" src="/map/egg.png" alt=""> ${island.spots}`:'No eggs';
     return `<div class="${cardCls}"><div class="island-header"><div class="island-title-row"><span class="island-icon">${island.icon}</span><span class="island-name">${island.name}</span></div><div class="island-meta-row"><div class="island-left"><span class="island-num">#${island.num}</span><span class="island-spots">${spotsLabel}</span></div>${collectHTML}</div></div>${spawnHTML}</div>`;
   }).join('');
   const now2=Date.now(),allOnCooldown=ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).every(i=>timers[i.name]&&(6*3600000-(now2-timers[i.name]))>0);
   const btn=document.getElementById('collectAllBtn');
-  if(btn){btn.classList.toggle('disabled',allOnCooldown);btn.textContent=allOnCooldown?'⏳ All on cooldown':'🥚 Collected All';}
+  if(btn){btn.classList.toggle('disabled',allOnCooldown);btn.innerHTML=allOnCooldown?'⏳ All on cooldown':'<img class="ic" src="/map/egg.png" alt=""> Collected All';}
 }
 document.getElementById('islandSearch').addEventListener('input',e=>{islandSearch=e.target.value;renderIslands();});
 let _leafletMap=null;
@@ -669,7 +671,7 @@ function renderSpiral(){
     const cdBox=cdLeft?`<div class="timer-box"><div class="timer-box-label">🔒 Your cooldown</div><div class="timer-box-value cooldown-time" id="scd_${key}">${cdLeft}</div></div>`:`<div class="timer-box"><div class="timer-box-label">🔒 Your cooldown</div><div class="timer-box-value expired">${d.pickedAt?'✅ Ready':'—'}</div></div>`;
     const discordRow=s?`<div class="discord-sighting fresh"><span class="ds-icon">💬</span><div class="ds-text">Spotted by <strong>${s.reportedBy}</strong> in Discord</div><span class="ds-time">${fmtAgo(s.age)}</span></div>`:'';
     const spawnBtn='';
-    const isOnCooldown=!!(d.pickedAt&&(6*3600000-(now-d.pickedAt))>0);const pickupBtn=isOnCooldown?`<button class="spiral-btn pickup" style="opacity:0.6;cursor:default;pointer-events:none">✅ Claimed</button>`:isSpawned||hasActiveSighting?`<button class="spiral-btn pickup" onclick="markPickedUp('${key}')">🥚 Picked up</button>`:'';
+    const isOnCooldown=!!(d.pickedAt&&(6*3600000-(now-d.pickedAt))>0);const pickupBtn=isOnCooldown?`<button class="spiral-btn pickup" style="opacity:0.6;cursor:default;pointer-events:none">✅ Claimed</button>`:isSpawned||hasActiveSighting?`<button class="spiral-btn pickup" onclick="markPickedUp('${key}')"><img class="ic" src="/map/egg.png" alt=""> Picked up</button>`:'';
     return `<div class="spiral-card ${cls}"><div class="spiral-header"><div class="spiral-name">${label}</div>${phase}</div>${discordRow}<div class="spiral-timers">${spawnBox}${cdBox}</div><div class="spiral-btns">${spawnBtn}${pickupBtn}<button class="spiral-btn reset" onclick="resetSpiral('${key}')">↺ Reset</button></div></div>`;
   }).join('');
 }
