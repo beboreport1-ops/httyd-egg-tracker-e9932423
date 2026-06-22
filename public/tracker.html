@@ -646,6 +646,16 @@ function initLeafletMap(){
   });
   setTimeout(()=>map.invalidateSize(),100);
 }
+function showEggModal(html){
+  closeEggModal();
+  const b=document.createElement('div');
+  b.className='egg-modal-backdrop';b.id='eggModalBackdrop';
+  b.innerHTML=`<div class="egg-modal"><button class="egg-modal-close" onclick="closeEggModal()" aria-label="Close">×</button>${html}</div>`;
+  b.addEventListener('click',e=>{if(e.target===b)closeEggModal();});
+  document.body.appendChild(b);
+}
+function closeEggModal(){const b=document.getElementById('eggModalBackdrop');if(b)b.remove();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEggModal();});
 function toggleMapFullscreen(){
   const w=document.getElementById('mapWrap');
   const btn=document.getElementById('mapFsBtn');
