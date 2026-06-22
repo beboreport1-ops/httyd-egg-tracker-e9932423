@@ -254,7 +254,21 @@
   .map-pin.no-eggs-pin{opacity:0.25;cursor:default;font-size:0.75rem;filter:none;}
   .map-tooltip{position:absolute;background:#0a0805f2;border:1.5px solid var(--fire);border-radius:6px;padding:6px 10px;font-size:0.7rem;color:var(--amber);pointer-events:none;white-space:nowrap;z-index:10;transform:translate(-50%,calc(-100% - 22px));display:none;font-weight:700;font-family:'Cinzel',serif;letter-spacing:1px;box-shadow:0 0 14px rgba(232,84,10,0.5);}
   .map-info{text-align:center;font-size:0.7rem;color:var(--muted);margin-bottom:8px;font-style:italic;}
-  .map-legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;font-size:0.68rem;color:var(--muted);}
+  .map-legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px;font-size:0.7rem;color:var(--muted);}
+  #leafletMap{height:70vh;min-height:420px;width:100%;background:#0a0805;border-radius:10px;border:2px solid #5a3a1a;box-shadow:0 0 0 1px rgba(0,0,0,0.6),0 6px 20px rgba(0,0,0,0.7),inset 0 0 30px rgba(0,0,0,0.6);overflow:hidden;}
+  #leafletMap .leaflet-control-zoom a{background:#1a0e08;color:var(--amber);border:1px solid #5a3a1a;}
+  #leafletMap .leaflet-control-zoom a:hover{background:#2a1810;color:#fff;}
+  .leaflet-popup-content-wrapper{background:#120a05f5;color:var(--amber);border:1.5px solid var(--fire);border-radius:8px;box-shadow:0 0 18px rgba(232,84,10,0.45);padding:2px;}
+  .leaflet-popup-tip{background:var(--fire);}
+  .leaflet-popup-close-button{color:var(--amber)!important;font-size:20px!important;padding:6px 8px 0 0!important;}
+  .httyd-popup h4{margin:0 0 6px;font-family:'Cinzel',serif;font-size:0.92rem;color:#ffb44a;letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid rgba(232,84,10,0.4);padding-bottom:4px;}
+  .httyd-popup .popup-body{font-size:0.72rem;line-height:1.45;color:#d8c8a8;}
+  .httyd-popup .popup-body ul{margin:4px 0 4px 16px;padding:0;}
+  .httyd-popup .popup-body small{color:var(--muted);font-style:italic;}
+  .httyd-popup img{width:100%;height:auto;border-radius:5px;margin-top:6px;border:1px solid rgba(232,84,10,0.3);}
+  .httyd-popup .popup-empty{color:var(--muted);}
+  .httyd-marker-icon{filter:drop-shadow(0 2px 4px rgba(0,0,0,0.95)) drop-shadow(0 0 3px rgba(232,84,10,0.55));transition:transform 0.15s;}
+  .httyd-marker-icon:hover{transform:scale(1.15);}
 
   .spiral-info{
     background:linear-gradient(180deg,rgba(42,10,5,0.7),rgba(20,5,3,0.7));
