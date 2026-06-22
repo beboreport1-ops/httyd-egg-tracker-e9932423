@@ -660,6 +660,42 @@ function showEggModal(html){
   document.body.appendChild(b);
 }
 function closeEggModal(){const b=document.getElementById('eggModalBackdrop');if(b)b.remove();}
+function islandFromMarker(m){
+  let t=m.title;
+  if(t==='Spiral Island Spawn Egg')return ISLANDS.find(i=>i.isSpiral)||null;
+  const base=t.replace(/\s+Egg Spawn\s+\d+$/,'');
+  return ISLANDS.find(i=>i.name===base)||ISLANDS.find(i=>i.name.startsWith(base))||null;
+}
+function openEggMarker(m){
+  const island=islandFromMarker(m);
+  const img=m.image?`<img src="${m.image}" alt="${m.title}" onerror="this.style.display='none'">`:'';
+  const desc=m.description||'<em class="popup-empty">No description yet.</em>';
+  let statusHTML='';
+  if(island && !island.isSpiral && island.spots>0){
+    const now=Date.now(),claimedAt=timers[island.name];
+    const remaining=claimedAt?(6*3600000-(now-claimedAt)):null;
+    const onCooldown=remaining!==null&&remaining>0;
+    const isReady=claimedAt&&!onCooldown;
+    if(onCooldown){
+      statusHTML=`<div class="egg-status cooldown"><span>⏳ On cooldown</span><span class="egg-status-time" data-island="${island.name}">${fmt(remaining)}</span></div><button class="egg-modal-btn reset" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')">↺ Reset cooldown</button>`;
+    } else if(isReady){
+      statusHTML=`<div class="egg-status ready"><span>✅ Respawned · Ready!</span></div><button class="egg-modal-btn" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')"><img class="ic" src="/map/egg.png" alt=""> Mark collected</button>`;
+    } else {
+      statusHTML=`<div class="egg-status unclaimed"><span>🥚 Unclaimed</span></div><button class="egg-modal-btn" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')"><img class="ic" src="/map/egg.png" alt=""> Mark collected</button>`;
+    }
+  } else if(island && island.isSpiral){
+    statusHTML=`<div class="egg-status unclaimed"><span>🌀 Tracked in Spiral tab</span></div>`;
+  }
+  const html=`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${statusHTML}${img}</div>`;
+  showEggModal(html);
+  window._currentMarker=m;
+}
+function markerToggle(name){
+  if(timers[name]){delete timers[name];apiReset(name);}
+  else{timers[name]=Date.now();apiCollect(name);}
+  save();renderIslands();
+  if(window._currentMarker)openEggMarker(window._currentMarker);
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEggModal();});
 function toggleMapFullscreen(){
   const w=document.getElementById('mapWrap');
