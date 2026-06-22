@@ -810,6 +810,7 @@ function renderSpiral(){
 }
 function tick(){
   const now=Date.now();
+  if(_islandView==='pinmap')renderIslandPins();
   ISLANDS.forEach(island=>{const claimedAt=timers[island.name];if(!claimedAt)return;const remaining=6*3600000-(now-claimedAt);const el=document.getElementById('it_'+island.num);if(el){const cd=fmt(remaining);if(cd)el.textContent=cd;else renderIslands();}const mEl=document.querySelector('.egg-status-time[data-island="'+island.name.replace(/"/g,'\\"')+'"]');if(mEl){const cd=fmt(remaining);if(cd)mEl.textContent=cd;else if(window._currentMarker)openEggMarker(window._currentMarker);}});
   SC.forEach(({key})=>{const d=spiralData[key];const s=discordSightings[key];const DESPAWN=50*60000;const spEl=document.getElementById('sp_'+key);if(spEl){if(d.spawnedAt){const left=DESPAWN-(now-d.spawnedAt);const cd=fmt(left);if(cd)spEl.textContent=cd;else{spiralData[key].spawnedAt=null;save();renderSpiral();}}else if(s&&s.spottedAt&&(now-s.spottedAt)<DESPAWN){const left=DESPAWN-(now-s.spottedAt);const cd=fmt(left);if(cd)spEl.textContent=cd;else{discordSightings[key]=null;renderSpiral();}}}const cdEl=document.getElementById('scd_'+key);if(cdEl&&d.pickedAt){const cd=fmt(6*3600000-(now-d.pickedAt));if(cd)cdEl.textContent=cd;}});
   const n=new Date(),mins=n.getMinutes(),secs=n.getSeconds();
