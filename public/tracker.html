@@ -582,7 +582,7 @@ function renderMapPins(){
     else if(onCooldown)pin.textContent='✅';
     else if(isReady)pin.textContent='🟢';
     else pin.textContent='📍';
-    if(island.spots>0&&!island.isSpiral){pin.onclick=()=>{toggleIsland(island.name);};}
+    // click handler set below (two-tap pattern)
     const showTip=()=>{const t=document.getElementById('mapTooltip');const cd=onCooldown?fmt(remaining):'';t.textContent=island.name+(onCooldown?` ⏳ ${cd}`:isReady?' ✅ Ready!':island.spots>0?` 🥚 ${island.spots} spots`:' No eggs');t.style.display='block';t.style.left=island.mx+'%';t.style.top=island.my+'%';t.dataset.for=island.name;};
     const hideTip=()=>{const t=document.getElementById('mapTooltip');t.style.display='none';t.dataset.for='';};
     pin.addEventListener('mouseenter',showTip);
