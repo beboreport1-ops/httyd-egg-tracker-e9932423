@@ -485,13 +485,13 @@
   <button class="tab-btn" onclick="switchTab('spiral')">🌀 Spiral</button>
 </div>
 <div class="tab-section active" id="islandsTab">
-  <div class="action-bar">
-    <button class="action-btn" id="collectAllBtn" onclick="collectAll()"><img class="ic" src="/map/egg.png" alt=""> Collected All</button>
-    <button class="action-btn reset-btn" onclick="resetAll()">↺ Reset All</button>
-  </div>
   <div class="sub-tabs">
     <button class="sub-tab-btn active" id="subTabList" onclick="switchIslandView('list')">🏝️ Collect by island</button>
     <button class="sub-tab-btn" id="subTabPin" onclick="switchIslandView('pinmap')">📍 Collect by map</button>
+  </div>
+  <div class="action-bar">
+    <button class="action-btn" id="collectAllBtn" onclick="collectAll()"><img class="ic" src="/map/egg.png" alt=""> Collected All</button>
+    <button class="action-btn reset-btn" onclick="resetAll()">↺ Reset All</button>
   </div>
   <div class="sub-section active" id="islandListView">
     <div class="search-wrap"><input type="text" id="islandSearch" placeholder="Search island or egg..." /></div>
