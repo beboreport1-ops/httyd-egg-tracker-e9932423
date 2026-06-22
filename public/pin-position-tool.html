@@ -30,15 +30,32 @@
 <textarea id="output" readonly placeholder="Patch output will appear here..."></textarea>
 
 <script>
-let ISLANDS=[];let labelsOn=true;
-async function load(){
-  const html=await fetch('/tracker.html').then(r=>r.text());
-  const m=html.match(/const ISLANDS=\[([\s\S]*?)\n\];/);
-  if(!m){alert('Could not find ISLANDS in tracker.html');return;}
-  // eval safely-ish
-  ISLANDS=Function('"use strict";return ['+m[1]+']')();
-  render();
-}
+let ISLANDS=[
+  {num:1,name:'Berk',mx:21.7,my:61.9},
+  {num:2,name:'Dragonroost Island',mx:15.5,my:76.9},
+  {num:3,name:'Gateway Island',mx:26.1,my:85.3},
+  {num:4,name:'Sheep Island',mx:38.6,my:77.4},
+  {num:5,name:'Isle of Frigga',mx:33.4,my:95.1},
+  {num:6,name:'Isle of Hollows',mx:48.9,my:89.4},
+  {num:7,name:'Botany Blight',mx:62.8,my:92.9},
+  {num:8,name:'Meathead Island',mx:72.0,my:79.0},
+  {num:9,name:'Ancient Retreat',mx:57.3,my:74.7},
+  {num:10,name:'Gronckle Island',mx:47.3,my:66.0},
+  {num:11,name:'Basalt Shores',mx:60.6,my:56.5},
+  {num:12,name:'Whispering Dunes',mx:77.4,my:62.5},
+  {num:13,name:'Breakneck Bog',mx:77.4,my:47.0},
+  {num:14,name:'Twin Flame Island',mx:69.0,my:29.0},
+  {num:15,name:'Flaming Forest',mx:48.6,my:23.6},
+  {num:16,name:'Spiral Island',mx:57.1,my:37.7},
+  {num:17,name:'Wild Island',mx:64.4,my:15.2},
+  {num:18,name:"Odin's Respite",mx:49.0,my:5.0},
+  {num:19,name:'Crown Island',mx:35.1,my:12.6},
+  {num:20,name:'Standing Stones',mx:32.6,my:34.8},
+  {num:21,name:'Sea Stack',mx:31.0,my:46.0},
+  {num:22,name:'Ship Graveyard',mx:44.3,my:50.8}
+];
+let labelsOn=true;
+function load(){render();}
 function render(){
   const wrap=document.getElementById('mapWrap');
   wrap.querySelectorAll('.pin').forEach(p=>p.remove());
