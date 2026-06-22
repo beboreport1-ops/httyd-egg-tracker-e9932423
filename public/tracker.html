@@ -583,10 +583,22 @@ function renderMapPins(){
     else if(isReady)pin.textContent='🟢';
     else pin.textContent='📍';
     if(island.spots>0&&!island.isSpiral){pin.onclick=()=>{toggleIsland(island.name);};}
-    const showTip=()=>{const t=document.getElementById('mapTooltip');const cd=onCooldown?fmt(remaining):'';t.textContent=island.name+(onCooldown?` ⏳ ${cd}`:isReady?' ✅ Ready!':island.spots>0?` 🥚 ${island.spots} spots`:' No eggs');t.style.display='block';t.style.left=island.mx+'%';t.style.top=island.my+'%';};
+    const showTip=()=>{const t=document.getElementById('mapTooltip');const cd=onCooldown?fmt(remaining):'';t.textContent=island.name+(onCooldown?` ⏳ ${cd}`:isReady?' ✅ Ready!':island.spots>0?` 🥚 ${island.spots} spots`:' No eggs');t.style.display='block';t.style.left=island.mx+'%';t.style.top=island.my+'%';t.dataset.for=island.name;};
+    const hideTip=()=>{const t=document.getElementById('mapTooltip');t.style.display='none';t.dataset.for='';};
     pin.addEventListener('mouseenter',showTip);
-    pin.addEventListener('mouseleave',()=>{document.getElementById('mapTooltip').style.display='none';});
-    pin.addEventListener('touchstart',(e)=>{e.preventDefault();showTip();setTimeout(()=>document.getElementById('mapTooltip').style.display='none',2000);if(island.spots>0&&!island.isSpiral)toggleIsland(island.name);},{passive:false});
+    pin.addEventListener('mouseleave',hideTip);
+    // Override click: first tap shows tooltip, second tap on same pin toggles
+    pin.onclick=(e)=>{
+      e.stopPropagation();
+      const t=document.getElementById('mapTooltip');
+      const alreadyShown=t.dataset.for===island.name&&t.style.display==='block';
+      if(alreadyShown&&island.spots>0&&!island.isSpiral){
+        hideTip();
+        toggleIsland(island.name);
+      }else{
+        showTip();
+      }
+    };
     container.appendChild(pin);
   });
 }
