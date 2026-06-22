@@ -641,6 +641,16 @@ function initLeafletMap(){
   });
   setTimeout(()=>map.invalidateSize(),100);
 }
+function toggleMapFullscreen(){
+  const w=document.getElementById('mapWrap');
+  const btn=document.getElementById('mapFsBtn');
+  w.classList.toggle('fullscreen');
+  const on=w.classList.contains('fullscreen');
+  btn.textContent=on?'✕':'⛶';
+  document.body.style.overflow=on?'hidden':'';
+  if(_leafletMap)setTimeout(()=>_leafletMap.invalidateSize(),120);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const w=document.getElementById('mapWrap');if(w&&w.classList.contains('fullscreen'))toggleMapFullscreen();}});
 const SC=[{key:'yellow',label:'🟡 Yellow Spiral Egg',cls:'yellow'},{key:'blue',label:'🔵 Blue Spiral Egg',cls:'blue'},{key:'red',label:'🔴 Red Spiral Egg',cls:'red'}];
 const API_URL='https://cosmic-spiral-whisper.lovable.app/api/spiral-sightings';
 let discordSightings={yellow:null,blue:null,red:null};
