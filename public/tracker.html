@@ -671,7 +671,7 @@ function renderSpiral(){
     const cdBox=cdLeft?`<div class="timer-box"><div class="timer-box-label">🔒 Your cooldown</div><div class="timer-box-value cooldown-time" id="scd_${key}">${cdLeft}</div></div>`:`<div class="timer-box"><div class="timer-box-label">🔒 Your cooldown</div><div class="timer-box-value expired">${d.pickedAt?'✅ Ready':'—'}</div></div>`;
     const discordRow=s?`<div class="discord-sighting fresh"><span class="ds-icon">💬</span><div class="ds-text">Spotted by <strong>${s.reportedBy}</strong> in Discord</div><span class="ds-time">${fmtAgo(s.age)}</span></div>`:'';
     const spawnBtn='';
-    const isOnCooldown=!!(d.pickedAt&&(6*3600000-(now-d.pickedAt))>0);const pickupBtn=isOnCooldown?`<button class="spiral-btn pickup" style="opacity:0.6;cursor:default;pointer-events:none">✅ Claimed</button>`:isSpawned||hasActiveSighting?`<button class="spiral-btn pickup" onclick="markPickedUp('${key}')">🥚 Picked up</button>`:'';
+    const isOnCooldown=!!(d.pickedAt&&(6*3600000-(now-d.pickedAt))>0);const pickupBtn=isOnCooldown?`<button class="spiral-btn pickup" style="opacity:0.6;cursor:default;pointer-events:none">✅ Claimed</button>`:isSpawned||hasActiveSighting?`<button class="spiral-btn pickup" onclick="markPickedUp('${key}')"><img class="ic" src="/map/egg.png" alt=""> Picked up</button>`:'';
     return `<div class="spiral-card ${cls}"><div class="spiral-header"><div class="spiral-name">${label}</div>${phase}</div>${discordRow}<div class="spiral-timers">${spawnBox}${cdBox}</div><div class="spiral-btns">${spawnBtn}${pickupBtn}<button class="spiral-btn reset" onclick="resetSpiral('${key}')">↺ Reset</button></div></div>`;
   }).join('');
 }
