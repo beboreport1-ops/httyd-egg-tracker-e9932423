@@ -4,7 +4,7 @@ import {
   Clock3,
   Compass,
   Flame,
-  Map,
+  Map as MapIcon,
   RefreshCcw,
   RotateCcw,
   Search,
@@ -348,7 +348,7 @@ function EggTracker() {
             className={activeTab === "map" ? "tab active" : "tab"}
             onClick={() => setActiveTab("map")}
           >
-            <Map size={20} aria-hidden="true" />
+            <MapIcon size={20} aria-hidden="true" />
             Map
           </button>
           <button
