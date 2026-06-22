@@ -658,7 +658,8 @@ function renderIslandPins(){
     else if(onCooldown){cls='cooldown';label=fmt(remaining)||island.name;}
     else if(isReady){cls='ready';label='✅ '+island.name;}
     const click=hasSpots&&!island.isSpiral?`onclick="toggleIsland('${island.name.replace(/'/g,"\\'")}')"`:'';
-    return `<div class="island-pin" style="left:${island.mx}%;top:${island.my}%" ${click} title="${island.name}" data-island="${island.name}"><span class="pin-dot ${cls}"></span><span class="pin-label">${label}</span></div>`;
+    const showLabel=onCooldown;
+    return `<div class="island-pin" style="left:${island.mx}%;top:${island.my}%" ${click} title="${island.name}" data-island="${island.name}"><span class="pin-dot ${cls}"></span>${showLabel?`<span class="pin-label">${fmt(remaining)||''}</span>`:''}</div>`;
   }).join('');
 }
 function renderIslands(){
