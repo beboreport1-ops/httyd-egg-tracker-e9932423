@@ -623,7 +623,7 @@ function initLeafletMap(){
   map.setMaxBounds(bounds);map.fitBounds(bounds);
   const fitZoom=map.getBoundsZoom(bounds,true);
   map.setMinZoom(fitZoom);
-  const eggIcon=L.icon({iconUrl:MAP_ASSETS.egg,iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-14],className:'httyd-marker-icon'});
+  const eggIcon=L.icon({iconUrl:MAP_ASSETS.egg,iconSize:[18,18],iconAnchor:[9,9],popupAnchor:[0,-9],className:'httyd-marker-icon'});
   MAP_MARKERS.forEach(m=>{
     const icon=eggIcon;
     const marker=L.marker(map.unproject([m.X,m.Y],1),{icon}).addTo(map);
