@@ -654,7 +654,14 @@ function renderIslandPins(){
     const onCooldown=remaining!==null&&remaining>0,isReady=remaining!==null&&remaining<=0;
     let cls='unclaimed',label=island.name;
     if(!hasSpots){cls='no-eggs';}
-    else if(island.isSpiral){cls='unclaimed';label='🌀 '+island.name;}
+    else if(island.isSpiral){
+      const DESPAWN=50*60000,CD=6*3600000;
+      const keys=['yellow','blue','red'];
+      const anySpawned=keys.some(k=>{const d=spiralData[k],s=discordSightings[k];return (d.spawnedAt&&(now-d.spawnedAt)<DESPAWN)||(s&&s.spottedAt&&(now-s.spottedAt)<DESPAWN);});
+      const anyTaken=keys.some(k=>spiralData[k].pickedAt&&(CD-(now-spiralData[k].pickedAt))>0);
+      cls=anySpawned?'ready':anyTaken?'cooldown':'unclaimed';
+      label='🌀 '+island.name;
+    }
     else if(onCooldown){cls='cooldown';label=fmt(remaining)||island.name;}
     else if(isReady){cls='ready';label='✅ '+island.name;}
     const click=hasSpots&&!island.isSpiral?`onclick="toggleIsland('${island.name.replace(/'/g,"\\'")}')"`:'';
