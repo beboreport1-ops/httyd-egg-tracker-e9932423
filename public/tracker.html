@@ -713,6 +713,7 @@ function initLeafletMap(){
   const bounds=new L.LatLngBounds(sw,ne);
   L.imageOverlay(MAP_ASSETS.map,bounds).addTo(map);
   map.setMaxBounds(bounds);map.fitBounds(bounds);
+  map.on('moveend',()=>{if(!bounds.contains(map.getBounds()))map.panInsideBounds(bounds,{animate:false});});
   const fitZoom=map.getBoundsZoom(bounds,true);
   map.setMinZoom(fitZoom);
   const eggIcon=L.icon({iconUrl:MAP_ASSETS.egg,iconSize:[18,18],iconAnchor:[9,9],popupAnchor:[0,-9],className:'httyd-marker-icon'});
