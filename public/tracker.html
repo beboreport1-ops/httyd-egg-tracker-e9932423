@@ -593,32 +593,28 @@ function renderIslands(){
   if(btn){btn.classList.toggle('disabled',allOnCooldown);btn.textContent=allOnCooldown?'⏳ All on cooldown':'🥚 Collected All';}
 }
 document.getElementById('islandSearch').addEventListener('input',e=>{islandSearch=e.target.value;renderIslands();});
-function renderMapPins(){
-  const container=document.getElementById('mapContainer');
-  container.querySelectorAll('.map-pin').forEach(p=>p.remove());
-  const now=Date.now();
-  ISLANDS.forEach(island=>{
-    const pin=document.createElement('div');
-    const claimedAt=timers[island.name],remaining=claimedAt?(6*3600000-(now-claimedAt)):null;
-    const onCooldown=remaining!==null&&remaining>0,isReady=remaining!==null&&remaining<=0;
-    pin.className='map-pin'+(island.spots===0?' no-eggs-pin':'');
-    pin.style.left=island.mx+'%';pin.style.top=island.my+'%';
-    if(island.spots===0)pin.textContent='⬜';
-    else if(island.isSpiral){
-      const DESPAWN=50*60000;
-      const hasSpawned=Object.values(discordSightings).some(s=>s&&s.spottedAt&&(Date.now()-s.spottedAt)<DESPAWN);
-      pin.textContent=hasSpawned?'🌀🥚':'🌀';
-    }
-    else if(onCooldown)pin.textContent='✅';
-    else if(isReady)pin.textContent='🟢';
-    else pin.textContent='📍';
-    if(island.spots>0&&!island.isSpiral){pin.onclick=()=>{toggleIsland(island.name);};}
-    const showTip=()=>{const t=document.getElementById('mapTooltip');const cd=onCooldown?fmt(remaining):'';t.textContent=island.name+(onCooldown?` ⏳ ${cd}`:isReady?' ✅ Ready!':island.spots>0?` 🥚 ${island.spots} spots`:' No eggs');t.style.display='block';t.style.left=island.mx+'%';t.style.top=island.my+'%';};
-    pin.addEventListener('mouseenter',showTip);
-    pin.addEventListener('mouseleave',()=>{document.getElementById('mapTooltip').style.display='none';});
-    pin.addEventListener('touchstart',(e)=>{e.preventDefault();showTip();setTimeout(()=>document.getElementById('mapTooltip').style.display='none',2000);if(island.spots>0&&!island.isSpiral)toggleIsland(island.name);},{passive:false});
-    container.appendChild(pin);
+let _leafletMap=null;
+function renderMapPins(){initLeafletMap();}
+function initLeafletMap(){
+  if(_leafletMap){setTimeout(()=>_leafletMap.invalidateSize(),50);return;}
+  if(typeof L==='undefined')return;
+  const MAP_W=5000,MAP_H=5000;
+  const map=L.map('leafletMap',{crs:L.CRS.Simple,minZoom:-2,maxZoom:2,zoomControl:true,attributionControl:false,zoomSnap:0.25});
+  _leafletMap=map;
+  const sw=map.unproject([0,MAP_H],1),ne=map.unproject([MAP_W,0],1);
+  const bounds=new L.LatLngBounds(sw,ne);
+  L.imageOverlay(MAP_ASSETS.map,bounds).addTo(map);
+  map.setMaxBounds(bounds);map.fitBounds(bounds);
+  const eggIcon=L.icon({iconUrl:MAP_ASSETS.egg,iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-14],className:'httyd-marker-icon'});
+  const flyIcon=L.icon({iconUrl:MAP_ASSETS.fly,iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-14],className:'httyd-marker-icon'});
+  MAP_MARKERS.forEach(m=>{
+    const icon=m.category==='time_trial'?flyIcon:eggIcon;
+    const marker=L.marker(map.unproject([m.X,m.Y],1),{icon}).addTo(map);
+    const img=m.image?`<img src="${m.image}" alt="${m.title}" onerror="this.style.display='none'">`:'';
+    const desc=m.description||'<em class="popup-empty">No description yet.</em>';
+    marker.bindPopup(`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${img}</div>`,{maxWidth:280,minWidth:220});
   });
+  setTimeout(()=>map.invalidateSize(),100);
 }
 const SC=[{key:'yellow',label:'🟡 Yellow Spiral Egg',cls:'yellow'},{key:'blue',label:'🔵 Blue Spiral Egg',cls:'blue'},{key:'red',label:'🔴 Red Spiral Egg',cls:'red'}];
 const API_URL='https://cosmic-spiral-whisper.lovable.app/api/spiral-sightings';
