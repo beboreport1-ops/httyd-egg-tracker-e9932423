@@ -677,11 +677,11 @@ function openEggMarker(m){
     const onCooldown=remaining!==null&&remaining>0;
     const isReady=claimedAt&&!onCooldown;
     if(onCooldown){
-      statusHTML=`<div class="egg-status cooldown"><span>⏳ On cooldown</span><span class="egg-status-time" data-island="${island.name}">${fmt(remaining)}</span></div><button class="egg-modal-btn reset" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')">↺ Reset cooldown</button>`;
+      statusHTML=`<div class="egg-status cooldown"><span>⏳ On cooldown</span><span class="egg-status-time" data-island="${island.name}">${fmt(remaining)}</span></div>`;
     } else if(isReady){
-      statusHTML=`<div class="egg-status ready"><span>✅ Respawned · Ready!</span></div><button class="egg-modal-btn" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')"><img class="ic" src="/map/egg.png" alt=""> Mark collected</button>`;
+      statusHTML=`<div class="egg-status ready"><span>✅ Respawned · Ready!</span></div>`;
     } else {
-      statusHTML=`<div class="egg-status unclaimed"><span>🥚 Unclaimed</span></div><button class="egg-modal-btn" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')"><img class="ic" src="/map/egg.png" alt=""> Mark collected</button>`;
+      statusHTML=`<div class="egg-status unclaimed"><span>🥚 Unclaimed</span></div>`;
     }
   } else if(island && island.isSpiral){
     statusHTML=`<div class="egg-status unclaimed"><span>🌀 Tracked in Spiral tab</span></div>`;
