@@ -737,6 +737,7 @@ function islandFromMarker(m){
   let t=m.title;
   if(t==='Spiral Island Spawn Egg')return ISLANDS.find(i=>i.isSpiral)||null;
   const base=t.replace(/\s+Egg Spawn\s+\d+$/,'');
+  if(base==='Meathead Islands')return ISLANDS.find(i=>i.name==='Meathead Island')||null;
   return ISLANDS.find(i=>i.name===base)||ISLANDS.find(i=>i.name.startsWith(base))||null;
 }
 function openEggMarker(m){
