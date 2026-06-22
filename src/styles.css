@@ -144,8 +144,6 @@
 }
 
 @layer base {
-  @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap");
-
   :root {
     --dragon-night: #0a0a0d;
     --dragon-stone: #19130f;
