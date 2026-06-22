@@ -707,7 +707,7 @@ function initLeafletMap(){
   if(_leafletMap){setTimeout(()=>_leafletMap.invalidateSize(),50);return;}
   if(typeof L==='undefined')return;
   const MAP_W=5000,MAP_H=5000;
-  const map=L.map('leafletMap',{crs:L.CRS.Simple,minZoom:-5,maxZoom:2,zoomControl:true,attributionControl:false,zoomSnap:0.1,maxBoundsViscosity:1.0,bounceAtZoomLimits:false});
+  const map=L.map('leafletMap',{crs:L.CRS.Simple,minZoom:-5,maxZoom:2,zoomControl:true,attributionControl:false,zoomSnap:0.1,maxBoundsViscosity:1.0,bounceAtZoomLimits:false,inertia:false});
   _leafletMap=map;
   const sw=map.unproject([0,MAP_H],1),ne=map.unproject([MAP_W,0],1);
   const bounds=new L.LatLngBounds(sw,ne);
