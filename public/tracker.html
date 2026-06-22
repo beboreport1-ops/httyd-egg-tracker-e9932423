@@ -583,26 +583,32 @@ function renderMapPins(){
     else if(isReady)pin.textContent='🟢';
     else pin.textContent='📍';
     // click handler set below (two-tap pattern)
-    const showTip=()=>{const t=document.getElementById('mapTooltip');const cd=onCooldown?fmt(remaining):'';t.textContent=island.name+(onCooldown?` ⏳ ${cd}`:isReady?' ✅ Ready!':island.spots>0?` 🥚 ${island.spots} spots`:' No eggs');t.style.display='block';t.style.left=island.mx+'%';t.style.top=island.my+'%';t.dataset.for=island.name;};
-    const hideTip=()=>{const t=document.getElementById('mapTooltip');t.style.display='none';t.dataset.for='';};
+    const showTip=()=>{
+      const t=document.getElementById('mapTooltip');
+      const cd=onCooldown?fmt(remaining):'';
+      t.textContent=island.name+(onCooldown?` ⏳ ${cd}`:isReady?' ✅ Ready!':island.spots>0?` 🥚 ${island.spots} spots`:' No eggs');
+      t.style.display='block';
+      t.style.left=island.mx+'%';
+      t.style.top=island.my+'%';
+      t.dataset.for=island.name;
+      if(window._tipTimer)clearTimeout(window._tipTimer);
+      window._tipTimer=setTimeout(()=>{t.style.display='none';t.dataset.for='';},3000);
+    };
+    const hideTip=()=>{const t=document.getElementById('mapTooltip');t.style.display='none';t.dataset.for='';if(window._tipTimer)clearTimeout(window._tipTimer);};
     pin.addEventListener('mouseenter',showTip);
     pin.addEventListener('mouseleave',hideTip);
-    // Override click: first tap shows tooltip, second tap on same pin toggles
     pin.onclick=(e)=>{
       e.stopPropagation();
       const t=document.getElementById('mapTooltip');
       const alreadyShown=t.dataset.for===island.name&&t.style.display==='block';
+      showTip();
       if(alreadyShown&&island.spots>0&&!island.isSpiral){
         hideTip();
         toggleIsland(island.name);
-      }else{
-        showTip();
       }
     };
     container.appendChild(pin);
   });
-  // tap outside any pin hides the tooltip
-  container.onclick=(e)=>{if(!e.target.classList.contains('map-pin')){const t=document.getElementById('mapTooltip');t.style.display='none';t.dataset.for='';}};
 }
 const SC=[{key:'yellow',label:'🟡 Yellow Spiral Egg',cls:'yellow'},{key:'blue',label:'🔵 Blue Spiral Egg',cls:'blue'},{key:'red',label:'🔴 Red Spiral Egg',cls:'red'}];
 const API_URL='https://cosmic-spiral-whisper.lovable.app/api/spiral-sightings';
