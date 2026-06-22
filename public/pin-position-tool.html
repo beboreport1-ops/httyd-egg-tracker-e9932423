@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Island Pin Positioner</title>
+<style>
+  body{margin:0;background:#0a0805;color:#f0a500;font-family:system-ui,sans-serif;padding:12px;}
+  h1{font-size:1rem;margin:0 0 8px;}
+  .info{font-size:0.8rem;color:#aaa;margin-bottom:10px;}
+  .map-wrap{position:relative;width:100%;max-width:900px;border:2px solid #5a3a1a;border-radius:8px;overflow:hidden;user-select:none;}
+  .map-wrap img{width:100%;display:block;-webkit-user-drag:none;}
+  .pin{position:absolute;transform:translate(-50%,-50%);cursor:grab;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:2;}
+  .pin.dragging{cursor:grabbing;z-index:99;}
+  .pin .dot{width:16px;height:16px;border-radius:50%;background:#f0a500;border:2px solid #000;box-shadow:0 0 6px rgba(0,0,0,0.9),0 0 8px #f0a500;}
+  .pin .lbl{font-size:0.6rem;color:#fff;background:rgba(0,0,0,0.85);padding:1px 4px;border-radius:3px;white-space:nowrap;border:1px solid #5a3a1a;pointer-events:none;}
+  .controls{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;}
+  button{padding:8px 14px;background:#2a1408;color:#f0a500;border:1.5px solid #e8540a;border-radius:6px;cursor:pointer;font-weight:700;}
+  button:hover{background:#4a1f08;color:#fff;}
+  textarea{width:100%;height:260px;margin-top:10px;background:#0d0a07;color:#f0a500;border:1.5px solid #5a3a1a;border-radius:6px;padding:10px;font-family:monospace;font-size:0.75rem;}
+  .hint{font-size:0.7rem;color:#888;margin-top:6px;}
+</style></head><body>
+<h1>📍 Island Pin Positioner</h1>
+<div class="info">Drag any pin to reposition it. Click <b>Copy JS Patch</b> when done and paste it back to the AI.</div>
+<div class="map-wrap" id="mapWrap">
+  <img src="/map/map.jpg" alt="map" id="mapImg" />
+</div>
+<div class="controls">
+  <button onclick="copyPatch()">📋 Copy JS Patch</button>
+  <button onclick="reset()">↺ Reload from tracker</button>
+  <button onclick="toggleLabels()">🏷️ Toggle labels</button>
+</div>
+<div class="hint">Tip: zoom your browser in for finer placement. Coordinates are saved as percentages.</div>
+<textarea id="output" readonly placeholder="Patch output will appear here..."></textarea>
+
+<script>
+let ISLANDS=[];let labelsOn=true;
+async function load(){
+  const html=await fetch('/tracker.html').then(r=>r.text());
+  const m=html.match(/const ISLANDS=\[([\s\S]*?)\n\];/);
+  if(!m){alert('Could not find ISLANDS in tracker.html');return;}
+  // eval safely-ish
+  ISLANDS=Function('"use strict";return ['+m[1]+']')();
+  render();
+}
+function render(){
+  const wrap=document.getElementById('mapWrap');
+  wrap.querySelectorAll('.pin').forEach(p=>p.remove());
+  ISLANDS.forEach((island,idx)=>{
+    const el=document.createElement('div');
+    el.className='pin';
+    el.style.left=island.mx+'%';
+    el.style.top=island.my+'%';
+    el.innerHTML=`<span class="dot"></span><span class="lbl">#${island.num} ${island.name}</span>`;
+    el.dataset.idx=idx;
+    attachDrag(el);
+    wrap.appendChild(el);
+  });
+  updateOutput();
+}
+function attachDrag(el){
+  let dragging=false;
+  const start=(e)=>{dragging=true;el.classList.add('dragging');e.preventDefault();};
+  const move=(e)=>{
+    if(!dragging)return;
+    const pt=e.touches?e.touches[0]:e;
+    const wrap=document.getElementById('mapWrap');
+    const r=wrap.getBoundingClientRect();
+    const x=((pt.clientX-r.left)/r.width)*100;
+    const y=((pt.clientY-r.top)/r.height)*100;
+    const cx=Math.max(0,Math.min(100,x)),cy=Math.max(0,Math.min(100,y));
+    el.style.left=cx+'%';el.style.top=cy+'%';
+    const idx=+el.dataset.idx;
+    ISLANDS[idx].mx=+cx.toFixed(2);
+    ISLANDS[idx].my=+cy.toFixed(2);
+    updateOutput();
+  };
+  const end=()=>{dragging=false;el.classList.remove('dragging');};
+  el.addEventListener('mousedown',start);
+  el.addEventListener('touchstart',start,{passive:false});
+  window.addEventListener('mousemove',move);
+  window.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('mouseup',end);
+  window.addEventListener('touchend',end);
+}
+function updateOutput(){
+  const lines=ISLANDS.map(i=>`  { num:${i.num}, name:${JSON.stringify(i.name)}, mx:${i.mx}, my:${i.my} },`).join('\n');
+  document.getElementById('output').value='// New mx/my coords — replace in tracker.html ISLANDS:\n[\n'+lines+'\n]';
+}
+function copyPatch(){const t=document.getElementById('output');t.select();document.execCommand('copy');alert('Copied!');}
+function reset(){load();}
+function toggleLabels(){labelsOn=!labelsOn;document.querySelectorAll('.pin .lbl').forEach(l=>l.style.display=labelsOn?'':'none');}
+load();
+</script>
+</body></html>
