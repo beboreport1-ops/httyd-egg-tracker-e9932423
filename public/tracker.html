@@ -621,6 +621,8 @@ function initLeafletMap(){
   const bounds=new L.LatLngBounds(sw,ne);
   L.imageOverlay(MAP_ASSETS.map,bounds).addTo(map);
   map.setMaxBounds(bounds);map.fitBounds(bounds);
+  const fitZoom=map.getBoundsZoom(bounds,true);
+  map.setMinZoom(fitZoom);
   const eggIcon=L.icon({iconUrl:MAP_ASSETS.egg,iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-14],className:'httyd-marker-icon'});
   MAP_MARKERS.forEach(m=>{
     const icon=eggIcon;
