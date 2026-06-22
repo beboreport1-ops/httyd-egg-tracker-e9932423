@@ -58,8 +58,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 const MAP_W=5000,MAP_H=5000;
-const MAP_IMG='map/map.jpg';
-const EGG_IMG='map/egg.png';
+const MAP_IMG='images/map.jpg';
+const EGG_IMG='images/egg.png';
 
 const map=L.map('map',{crs:L.CRS.Simple,minZoom:-5,maxZoom:2,zoomSnap:0.1,attributionControl:false});
 const sw=map.unproject([0,MAP_H],1), ne=map.unproject([MAP_W,0],1);
