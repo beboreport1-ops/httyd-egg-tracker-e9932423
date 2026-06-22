@@ -270,6 +270,10 @@
   .httyd-popup .popup-body{font-size:0.72rem;line-height:1.45;color:#d8c8a8;}
   .httyd-popup .popup-body ul{margin:4px 0 4px 16px;padding:0;}
   .httyd-popup .popup-body small{color:var(--muted);font-style:italic;}
+  .egg-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .egg-modal{background:#120a05;color:var(--amber);border:1.5px solid var(--fire);border-radius:10px;box-shadow:0 0 28px rgba(232,84,10,0.5);max-width:340px;width:100%;max-height:85vh;overflow-y:auto;padding:14px 16px;position:relative;}
+  .egg-modal-close{position:absolute;top:6px;right:10px;background:none;border:none;color:var(--amber);font-size:22px;cursor:pointer;line-height:1;}
+  .egg-modal img{max-width:100%;border-radius:6px;margin-top:8px;}
   .httyd-popup img{width:100%;height:auto;border-radius:5px;margin-top:6px;border:1px solid rgba(232,84,10,0.3);}
   .httyd-popup .popup-empty{color:var(--muted);}
   .httyd-marker-icon{filter:drop-shadow(0 2px 4px rgba(0,0,0,0.95)) drop-shadow(0 0 3px rgba(232,84,10,0.55));transition:transform 0.15s;}
@@ -637,10 +641,21 @@ function initLeafletMap(){
     const marker=L.marker(map.unproject([m.X,m.Y],1),{icon}).addTo(map);
     const img=m.image?`<img src="${m.image}" alt="${m.title}" onerror="this.style.display='none'">`:'';
     const desc=m.description||'<em class="popup-empty">No description yet.</em>';
-    marker.bindPopup(`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${img}</div>`,{maxWidth:280,minWidth:220});
+    const html=`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${img}</div>`;
+    marker.on('click',()=>showEggModal(html));
   });
   setTimeout(()=>map.invalidateSize(),100);
 }
+function showEggModal(html){
+  closeEggModal();
+  const b=document.createElement('div');
+  b.className='egg-modal-backdrop';b.id='eggModalBackdrop';
+  b.innerHTML=`<div class="egg-modal"><button class="egg-modal-close" onclick="closeEggModal()" aria-label="Close">×</button>${html}</div>`;
+  b.addEventListener('click',e=>{if(e.target===b)closeEggModal();});
+  document.body.appendChild(b);
+}
+function closeEggModal(){const b=document.getElementById('eggModalBackdrop');if(b)b.remove();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEggModal();});
 function toggleMapFullscreen(){
   const w=document.getElementById('mapWrap');
   const btn=document.getElementById('mapFsBtn');
