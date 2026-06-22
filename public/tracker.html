@@ -658,16 +658,21 @@ function renderIslandPins(){
     else if(island.isSpiral){
       const DESPAWN=50*60000,CD=6*3600000;
       const keys=['yellow','blue','red'];
-      const anySpawned=keys.some(k=>{const d=spiralData[k],s=discordSightings[k];return (d.spawnedAt&&(now-d.spawnedAt)<DESPAWN)||(s&&s.spottedAt&&(now-s.spottedAt)<DESPAWN);});
+      let minSpawnLeft=null;
+      keys.forEach(k=>{const d=spiralData[k],s=discordSightings[k];let left=null;if(d.spawnedAt&&(now-d.spawnedAt)<DESPAWN)left=DESPAWN-(now-d.spawnedAt);else if(s&&s.spottedAt&&(now-s.spottedAt)<DESPAWN)left=DESPAWN-(now-s.spottedAt);if(left!==null&&(minSpawnLeft===null||left<minSpawnLeft))minSpawnLeft=left;});
       const anyTaken=keys.some(k=>spiralData[k].pickedAt&&(CD-(now-spiralData[k].pickedAt))>0);
-      cls=anySpawned?'ready':anyTaken?'cooldown':'unclaimed';
+      if(minSpawnLeft!==null){cls='ready';island._spiralLabel=fmt(minSpawnLeft)||'';}
+      else if(anyTaken){cls='cooldown';island._spiralLabel='';}
+      else{cls='spiral-waiting';island._spiralLabel='';}
       label='🌀 '+island.name;
     }
     else if(onCooldown){cls='cooldown';label=fmt(remaining)||island.name;}
     else if(isReady){cls='ready';label='✅ '+island.name;}
     const click=hasSpots&&!island.isSpiral?`onclick="toggleIsland('${island.name.replace(/'/g,"\\'")}')"`:'';
-    const showLabel=onCooldown;
-    return `<div class="island-pin" style="left:${island.mx}%;top:${island.my}%" ${click} title="${island.name}" data-island="${island.name}"><span class="pin-dot ${cls}"></span>${showLabel?`<span class="pin-label">${fmt(remaining)||''}</span>`:''}</div>`;
+    const spiralLbl=island.isSpiral&&island._spiralLabel?island._spiralLabel:'';
+    const showLabel=onCooldown||spiralLbl;
+    const labelText=spiralLbl||(onCooldown?(fmt(remaining)||''):'');
+    return `<div class="island-pin" style="left:${island.mx}%;top:${island.my}%" ${click} title="${island.name}" data-island="${island.name}"><span class="pin-dot ${cls}"></span>${showLabel?`<span class="pin-label">${labelText}</span>`:''}</div>`;
   }).join('');
 }
 function renderIslands(){
