@@ -304,6 +304,8 @@
   .spiral-btn.spawn:hover{box-shadow:inset 0 1px 0 rgba(255,180,90,0.06),0 0 12px rgba(46,204,113,0.5);}
   .spiral-btn.pickup{border-color:var(--amber);color:var(--amber);}
   .spiral-btn.pickup:hover{box-shadow:inset 0 1px 0 rgba(255,180,90,0.06),0 0 12px rgba(240,165,0,0.5);}
+  .spiral-btn.announce{border-color:#f3b437;color:#ffd978;background:linear-gradient(180deg,#3a0d08,#140604);box-shadow:inset 0 1px 0 rgba(255,217,120,0.18),0 0 10px rgba(243,180,55,0.28);}
+  .spiral-btn.announce:hover{color:#fff8dc;box-shadow:inset 0 1px 0 rgba(255,217,120,0.28),0 0 16px rgba(243,180,55,0.58);}
   .spiral-btn.reset:hover{border-color:var(--mythic);color:var(--mythic);box-shadow:0 0 12px rgba(255,68,68,0.5);}
 
   /* Berk Herald announcement — HTTYD flag themed */
@@ -651,8 +653,9 @@ function renderSpiral(){
     const spawnBox=isSpawned&&spawnLeft?`<div class="timer-box"><div class="timer-box-label">⏰ Despawns in</div><div class="timer-box-value active-time" id="sp_${key}">${spawnLeft}</div></div>`:hasActiveSighting?`<div class="timer-box"><div class="timer-box-label">⏰ Despawns in</div><div class="timer-box-value active-time" id="sp_${key}">${fmt(50*60000-(now-s.spottedAt))||'—'}</div></div>`:`<div class="timer-box"><div class="timer-box-label">⏰ Despawns in</div><div class="timer-box-value expired">—</div></div>`;
     const cdBox=cdLeft?`<div class="timer-box"><div class="timer-box-label">🔒 Your cooldown</div><div class="timer-box-value cooldown-time" id="scd_${key}">${cdLeft}</div></div>`:`<div class="timer-box"><div class="timer-box-label">🔒 Your cooldown</div><div class="timer-box-value expired">${d.pickedAt?'✅ Ready':'—'}</div></div>`;
     const discordRow=s?`<div class="discord-sighting fresh"><span class="ds-icon">🐲</span><div class="ds-text">Sighted by <strong>${s.reportedBy}</strong> — Berk signal raised</div><span class="ds-time">${fmtAgo(s.age)}</span></div>`:'';
-    const spawnBtn='';
-    const isOnCooldown=!!(d.pickedAt&&(6*3600000-(now-d.pickedAt))>0);const pickupBtn=isOnCooldown?`<button class="spiral-btn pickup" style="opacity:0.6;cursor:default;pointer-events:none">✅ Claimed</button>`:isSpawned||hasActiveSighting?`<button class="spiral-btn pickup" onclick="markPickedUp('${key}')">🥚 Picked up</button>`:'';
+    const isOnCooldown=!!(d.pickedAt&&(6*3600000-(now-d.pickedAt))>0);
+    const spawnBtn=!isSpawned&&!hasActiveSighting&&!isOnCooldown?`<button class="spiral-btn announce" onclick="markSpawned('${key}')">📣 Raise Berk Signal</button>`:'';
+    const pickupBtn=isOnCooldown?`<button class="spiral-btn pickup" style="opacity:0.6;cursor:default;pointer-events:none">✅ Claimed</button>`:isSpawned||hasActiveSighting?`<button class="spiral-btn pickup" onclick="markPickedUp('${key}')">🥚 Picked up</button>`:'';
     return `<div class="spiral-card ${cls}"><div class="spiral-header"><div class="spiral-name">${label}</div>${phase}</div>${discordRow}<div class="spiral-timers">${spawnBox}${cdBox}</div><div class="spiral-btns">${spawnBtn}${pickupBtn}<button class="spiral-btn reset" onclick="resetSpiral('${key}')">↺ Reset</button></div></div>`;
   }).join('');
 }
