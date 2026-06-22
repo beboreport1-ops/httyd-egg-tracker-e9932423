@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Egg Image Assigner</title>
+<style>
+  :root{--bg:#120a05;--card:#1a0e08;--border:#5a3a1a;--amber:#f0a500;--fire:#e8540a;--text:#e8d4a8;--muted:#8a7355;--ok:#2ecc71;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);padding:16px;}
+  h1{font-size:1.2rem;color:var(--amber);margin:0 0 4px;}
+  p.lead{color:var(--muted);font-size:0.85rem;margin:0 0 16px;}
+  .toolbar{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center;z-index:10;margin-bottom:14px;}
+  .toolbar input[type=file]{color:var(--text);font-size:0.8rem;}
+  button{background:var(--card);color:var(--amber);border:1px solid var(--border);padding:8px 14px;border-radius:6px;font-size:0.85rem;cursor:pointer;}
+  button:hover{background:#2a1810;color:#fff;}
+  button.primary{border-color:var(--fire);background:linear-gradient(180deg,#3a1f12,#1a0e08);}
+  button:disabled{opacity:0.5;cursor:not-allowed;}
+  section{margin:18px 0;}
+  section h2{font-size:0.95rem;color:var(--amber);border-bottom:1px solid var(--border);padding-bottom:6px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;}
+  .count{font-size:0.7rem;color:var(--muted);font-weight:400;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;}
+  .egg{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;font-size:0.78rem;cursor:pointer;user-select:none;}
+  .egg:hover{border-color:var(--fire);}
+  .egg.checked{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset;}
+  .egg-row{display:flex;align-items:center;gap:6px;}
+  .egg input{accent-color:var(--ok);transform:scale(1.1);}
+  .egg-title{flex:1;line-height:1.2;}
+  .egg img{width:100%;height:90px;object-fit:cover;border-radius:4px;background:#000;}
+  .empty{color:var(--muted);font-style:italic;font-size:0.8rem;padding:6px 0;}
+  .status{font-size:0.78rem;color:var(--ok);margin-left:auto;}
+  .group-tools{display:flex;gap:6px;}
+  .group-tools button{padding:4px 8px;font-size:0.7rem;}
+</style>
+</head>
+<body>
+<h1>🥚 Egg Image Assigner</h1>
+<p class="lead">Check eggs, pick a photo, click <b>Assign</b>. When done, click <b>Download ZIP</b> and send the zip back so the images can be wired into the tracker.</p>
+
+<div class="toolbar">
+  <input type="file" id="fileInput" accept="image/*">
+  <button class="primary" id="assignBtn" disabled>✅ Assign to checked</button>
+  <button id="clearBtn">Uncheck all</button>
+  <button id="downloadBtn">⬇️ Download ZIP</button>
+  <span class="status" id="status"></span>
+</div>
+
+<section>
+  <h2>❌ Missing picture <span class="count" id="missingCount">0</span>
+    <span class="group-tools"><button data-group="missing" data-act="all">Check all</button><button data-group="missing" data-act="none">None</button></span>
+  </h2>
+  <div class="grid" id="missingGrid"></div>
+</section>
+
+<section>
+  <h2>✅ Has picture <span class="count" id="haveCount">0</span>
+    <span class="group-tools"><button data-group="have" data-act="all">Check all</button><button data-group="have" data-act="none">None</button></span>
+  </h2>
+  <div class="grid" id="haveGrid"></div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const state={markers:[],checked:new Set(),pendingFile:null,assignments:{}};
+
+function safeName(s){return s.replace(/[\\/:*?"<>|]+/g,'').trim();}
+function ext(file){const m=/\.(png|jpe?g|webp|gif)$/i.exec(file.name);return m?m[0].toLowerCase():'.png';}
+
+async function load(){
+  const res=await fetch('/tracker.html');
+  const txt=await res.text();
+  const m=txt.match(/const MAP_MARKERS=(\[[\s\S]*?\]);/);
+  if(!m){document.body.insertAdjacentHTML('beforeend','<p style="color:red">Could not load MAP_MARKERS from tracker.html</p>');return;}
+  state.markers=JSON.parse(m[1]);
+  render();
+}
+
+function render(){
+  const have=[],missing=[];
+  state.markers.forEach(mk=>{
+    const a=state.assignments[mk.title];
+    const img=a?a.url:mk.image;
+    (img?have:missing).push({mk,img,assigned:!!a});
+  });
+  document.getElementById('missingCount').textContent=missing.length;
+  document.getElementById('haveCount').textContent=have.length;
+  document.getElementById('missingGrid').innerHTML=missing.map(card).join('')||'<div class="empty">All eggs have pictures 🎉</div>';
+  document.getElementById('haveGrid').innerHTML=have.map(card).join('')||'<div class="empty">None yet.</div>';
+  document.querySelectorAll('.egg').forEach(el=>{
+    el.addEventListener('click',e=>{
+      if(e.target.tagName==='INPUT')return;
+      const cb=el.querySelector('input');cb.checked=!cb.checked;toggle(cb);
+    });
+    el.querySelector('input').addEventListener('change',e=>toggle(e.target));
+  });
+  updateAssign();
+}
+function card({mk,img,assigned}){
+  const checked=state.checked.has(mk.title)?'checked':'';
+  const cls='egg'+(checked?' checked':'');
+  const tag=assigned?' <span style="color:var(--ok)">(new)</span>':'';
+  const im=img?`<img src="${img}" alt="">`:'';
+  return `<label class="${cls}" data-title="${mk.title.replace(/"/g,'&quot;')}">
+    <div class="egg-row"><input type="checkbox" ${checked} data-title="${mk.title.replace(/"/g,'&quot;')}"><span class="egg-title">${mk.title}${tag}</span></div>
+    ${im}
+  </label>`;
+}
+function toggle(cb){
+  const t=cb.dataset.title;
+  if(cb.checked)state.checked.add(t);else state.checked.delete(t);
+  cb.closest('.egg').classList.toggle('checked',cb.checked);
+  updateAssign();
+}
+function updateAssign(){
+  document.getElementById('assignBtn').disabled=!(state.pendingFile && state.checked.size>0);
+}
+
+document.getElementById('fileInput').addEventListener('change',e=>{
+  const f=e.target.files[0];
+  if(!f){state.pendingFile=null;updateAssign();return;}
+  state.pendingFile=f;
+  document.getElementById('status').textContent=`📷 ${f.name} ready — check eggs, then Assign`;
+  updateAssign();
+});
+
+document.getElementById('assignBtn').addEventListener('click',async()=>{
+  const f=state.pendingFile;if(!f||!state.checked.size)return;
+  const buf=await f.arrayBuffer();
+  const url=URL.createObjectURL(new Blob([buf],{type:f.type}));
+  const e=ext(f);
+  for(const title of state.checked){
+    state.assignments[title]={blob:buf,type:f.type,ext:e,url};
+  }
+  document.getElementById('status').textContent=`✅ Assigned to ${state.checked.size} egg(s)`;
+  state.checked.clear();
+  document.getElementById('fileInput').value='';
+  state.pendingFile=null;
+  render();
+});
+
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  state.checked.clear();render();
+});
+
+document.querySelectorAll('.group-tools button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const grid=b.dataset.group==='missing'?'missingGrid':'haveGrid';
+    document.getElementById(grid).querySelectorAll('input').forEach(cb=>{
+      cb.checked=b.dataset.act==='all';toggle(cb);
+    });
+  });
+});
+
+document.getElementById('downloadBtn').addEventListener('click',async()=>{
+  const keys=Object.keys(state.assignments);
+  if(!keys.length){alert('No new assignments to download. Upload + Assign first.');return;}
+  const zip=new JSZip();
+  for(const title of keys){
+    const a=state.assignments[title];
+    zip.file(safeName(title)+a.ext,a.blob);
+  }
+  const blob=await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='egg_assignments.zip';
+  a.click();
+  document.getElementById('status').textContent=`⬇️ Downloaded ${keys.length} file(s) — send the zip back.`;
+});
+
+load();
+</script>
+</body>
+</html>
