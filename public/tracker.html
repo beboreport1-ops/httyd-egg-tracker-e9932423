@@ -466,8 +466,26 @@
     <button class="action-btn" id="collectAllBtn" onclick="collectAll()"><img class="ic" src="/map/egg.png" alt=""> Collected All</button>
     <button class="action-btn reset-btn" onclick="resetAll()">↺ Reset All</button>
   </div>
-  <div class="search-wrap"><input type="text" id="islandSearch" placeholder="Search island or egg..." /></div>
-  <div class="island-grid" id="islandGrid"></div>
+  <div class="sub-tabs">
+    <button class="sub-tab-btn active" id="subTabList" onclick="switchIslandView('list')">🏝️ Collect by island</button>
+    <button class="sub-tab-btn" id="subTabPin" onclick="switchIslandView('pinmap')">📍 Collect by map</button>
+  </div>
+  <div class="sub-section active" id="islandListView">
+    <div class="search-wrap"><input type="text" id="islandSearch" placeholder="Search island or egg..." /></div>
+    <div class="island-grid" id="islandGrid"></div>
+  </div>
+  <div class="sub-section" id="islandPinView">
+    <div class="map-info">Tap an island pin to collect · Tap again to reset</div>
+    <div class="pin-map-container">
+      <img src="/map/map.jpg" alt="Map" draggable="false" />
+      <div class="pin-map-layer" id="pinMapLayer"></div>
+    </div>
+    <div class="pin-legend">
+      <span><span class="pin-dot unclaimed"></span> Unclaimed</span>
+      <span><span class="pin-dot cooldown"></span> On cooldown</span>
+      <span><span class="pin-dot ready"></span> Ready</span>
+    </div>
+  </div>
 </div>
 <div class="tab-section" id="mapTab">
   <div class="map-info">Tap a marker for details · Drag to pan · Scroll/pinch to zoom</div>
