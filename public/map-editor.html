@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Map Editor — Egg Point Marker</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,sans-serif;}
+  html,body{height:100%;background:#0a0a0d;color:#f3e9d8;}
+  body{display:flex;flex-direction:column;}
+  header{padding:10px 14px;background:#15110d;border-bottom:1px solid #3a2a1a;display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  header h1{font-size:15px;font-weight:600;color:#f0a500;margin-right:auto;}
+  button{background:#1c1812;color:#f3e9d8;border:1px solid #3a2a1a;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;}
+  button:hover{background:#2a2118;border-color:#e8540a;}
+  button.primary{background:#e8540a;border-color:#ff7a1f;color:#fff;}
+  button.primary:hover{background:#ff7a1f;}
+  button.danger{border-color:#ff4444;color:#ff6666;}
+  .main{flex:1;display:flex;min-height:0;}
+  #map{flex:1;background:#000;}
+  .sidebar{width:320px;background:#15110d;border-left:1px solid #3a2a1a;display:flex;flex-direction:column;}
+  .sidebar h2{padding:10px 12px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#8a7a66;border-bottom:1px solid #3a2a1a;}
+  .pts{flex:1;overflow:auto;padding:8px;}
+  .pt{background:#1c1812;border:1px solid #3a2a1a;border-radius:6px;padding:8px;margin-bottom:6px;font-size:12px;}
+  .pt .row{display:flex;gap:6px;align-items:center;margin-bottom:4px;}
+  .pt .row.head{justify-content:space-between;}
+  .pt input{flex:1;background:#0a0a0d;color:#f3e9d8;border:1px solid #3a2a1a;border-radius:4px;padding:4px 6px;font-size:12px;}
+  .pt .coords{color:#8a7a66;font-family:monospace;font-size:11px;}
+  .pt .del{background:transparent;border:none;color:#ff6666;padding:2px 6px;cursor:pointer;}
+  .footer{padding:10px;border-top:1px solid #3a2a1a;display:flex;flex-direction:column;gap:6px;}
+  .hint{padding:8px 12px;background:#1c1812;border-bottom:1px solid #3a2a1a;font-size:12px;color:#8a7a66;}
+  .leaflet-container{background:#000;}
+  .pin-num{background:#e8540a;color:#fff;border:2px solid #fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;box-shadow:0 0 6px rgba(0,0,0,.6);}
+  textarea{width:100%;height:120px;background:#0a0a0d;color:#f3e9d8;border:1px solid #3a2a1a;border-radius:4px;padding:6px;font-family:monospace;font-size:11px;}
+  @media(max-width:700px){.main{flex-direction:column;}.sidebar{width:100%;height:40vh;border-left:none;border-top:1px solid #3a2a1a;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🥚 Egg Map Editor</h1>
+  <button id="mode-add" class="primary">➕ Add Mode: ON</button>
+  <button id="btn-export">Export JSON</button>
+  <button id="btn-import">Import</button>
+  <button id="btn-clear" class="danger">Clear All</button>
+</header>
+<div class="hint">Click anywhere on the map to drop a numbered egg point. Edit names in the sidebar. Drag pins to move them.</div>
+<div class="main">
+  <div id="map"></div>
+  <aside class="sidebar">
+    <h2>Points (<span id="count">0</span>)</h2>
+    <div class="pts" id="pts"></div>
+    <div class="footer">
+      <textarea id="json" placeholder="JSON output / paste here to import"></textarea>
+    </div>
+  </aside>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+const MAP_W=5000,MAP_H=5000;
+const MAP_IMG='/map/map.jpg';
+const EGG_IMG='/map/egg.png';
+
+const map=L.map('map',{crs:L.CRS.Simple,minZoom:-5,maxZoom:2,zoomSnap:0.1,attributionControl:false});
+const sw=map.unproject([0,MAP_H],1), ne=map.unproject([MAP_W,0],1);
+const bounds=new L.LatLngBounds(sw,ne);
+L.imageOverlay(MAP_IMG,bounds).addTo(map);
+map.setMaxBounds(bounds);
+map.fitBounds(bounds);
+map.setMinZoom(map.getBoundsZoom(bounds,true));
+
+const eggIcon=L.icon({iconUrl:EGG_IMG,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-14]});
+
+let points=[]; // {id,name,X,Y,marker}
+let nextId=1;
+let addMode=true;
+
+const modeBtn=document.getElementById('mode-add');
+modeBtn.onclick=()=>{addMode=!addMode;modeBtn.textContent=addMode?'➕ Add Mode: ON':'➕ Add Mode: OFF';modeBtn.classList.toggle('primary',addMode);};
+
+map.on('click',e=>{
+  if(!addMode)return;
+  const p=map.project(e.latlng,1);
+  addPoint({id:nextId++,name:'Egg '+(points.length+1),X:Math.round(p.x),Y:Math.round(p.y)});
+});
+
+function addPoint(d){
+  const latlng=map.unproject([d.X,d.Y],1);
+  const marker=L.marker(latlng,{icon:eggIcon,draggable:true}).addTo(map);
+  marker.bindTooltip(d.name,{permanent:true,direction:'top',offset:[0,-14],className:'pin-label'});
+  marker.on('dragend',()=>{
+    const p=map.project(marker.getLatLng(),1);
+    d.X=Math.round(p.x);d.Y=Math.round(p.y);
+    render();
+  });
+  d.marker=marker;
+  points.push(d);
+  render();
+}
+
+function render(){
+  document.getElementById('count').textContent=points.length;
+  const el=document.getElementById('pts');
+  el.innerHTML='';
+  points.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='pt';
+    div.innerHTML=`
+      <div class="row head"><strong>#${i+1}</strong><button class="del" data-id="${p.id}">✕</button></div>
+      <div class="row"><input value="${escapeHtml(p.name)}" data-id="${p.id}" class="name-input"></div>
+      <div class="coords">X:${p.X} Y:${p.Y}</div>`;
+    el.appendChild(div);
+    p.marker.setTooltipContent(p.name);
+  });
+  el.querySelectorAll('.name-input').forEach(inp=>{
+    inp.oninput=()=>{
+      const p=points.find(x=>x.id==inp.dataset.id);
+      if(p){p.name=inp.value;p.marker.setTooltipContent(p.name);}
+      updateJson();
+    };
+  });
+  el.querySelectorAll('.del').forEach(btn=>{
+    btn.onclick=()=>{
+      const id=+btn.dataset.id;
+      const p=points.find(x=>x.id===id);
+      if(p){map.removeLayer(p.marker);points=points.filter(x=>x.id!==id);render();}
+    };
+  });
+  updateJson();
+}
+
+function updateJson(){
+  document.getElementById('json').value=JSON.stringify(
+    points.map((p,i)=>({id:i+1,name:p.name,X:p.X,Y:p.Y})),null,2);
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+document.getElementById('btn-export').onclick=()=>{
+  updateJson();
+  const blob=new Blob([document.getElementById('json').value],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='egg-points.json';a.click();
+};
+document.getElementById('btn-import').onclick=()=>{
+  try{
+    const data=JSON.parse(document.getElementById('json').value);
+    points.forEach(p=>map.removeLayer(p.marker));
+    points=[];nextId=1;
+    data.forEach(d=>addPoint({id:nextId++,name:d.name||'Egg',X:d.X,Y:d.Y}));
+  }catch(e){alert('Invalid JSON: '+e.message);}
+};
+document.getElementById('btn-clear').onclick=()=>{
+  if(!confirm('Clear all points?'))return;
+  points.forEach(p=>map.removeLayer(p.marker));
+  points=[];render();
+};
+
+// persistence
+const SAVE_KEY='egg-map-editor-v1';
+const saved=localStorage.getItem(SAVE_KEY);
+if(saved){try{JSON.parse(saved).forEach(d=>addPoint({id:nextId++,name:d.name,X:d.X,Y:d.Y}));}catch(e){}}
+setInterval(()=>localStorage.setItem(SAVE_KEY,JSON.stringify(points.map(p=>({name:p.name,X:p.X,Y:p.Y})))),1500);
+
+render();
+</script>
+<style>.pin-label{background:#15110d;color:#f3e9d8;border:1px solid #e8540a;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}</style>
+</body>
+</html>
