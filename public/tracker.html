@@ -643,6 +643,24 @@ function switchTab(tab){['islands','map','spiral'].forEach(t=>document.getElemen
 function toggleIsland(name){if(timers[name]){showModal('Reset Cooldown','Reset cooldown for '+name+'?',()=>{delete timers[name];apiReset(name);save();renderIslands();renderMapPins();renderIslandPins();});}else{timers[name]=Date.now();apiCollect(name);save();renderIslands();renderMapPins();renderIslandPins();}}
 function collectAll(){const now=Date.now();ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).forEach(i=>{timers[i.name]=now;apiCollect(i.name);});save();renderIslands();renderMapPins();renderIslandPins();}
 function resetAll(){showModal('Reset All Cooldowns','This will clear all island cooldowns. Are you sure?',()=>{if(currentUser){ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).forEach(i=>apiReset(i.name));}timers={};save();renderIslands();renderMapPins();renderIslandPins();});}
+let _islandView='list';
+function switchIslandView(v){_islandView=v;document.getElementById('islandListView').classList.toggle('active',v==='list');document.getElementById('islandPinView').classList.toggle('active',v==='pinmap');document.getElementById('subTabList').classList.toggle('active',v==='list');document.getElementById('subTabPin').classList.toggle('active',v==='pinmap');if(v==='pinmap')renderIslandPins();}
+function renderIslandPins(){
+  const layer=document.getElementById('pinMapLayer');if(!layer)return;
+  const now=Date.now();
+  layer.innerHTML=ISLANDS.map(island=>{
+    const hasSpots=island.spots>0;
+    const claimedAt=timers[island.name],remaining=claimedAt?(6*3600000-(now-claimedAt)):null;
+    const onCooldown=remaining!==null&&remaining>0,isReady=remaining!==null&&remaining<=0;
+    let cls='unclaimed',label=island.name;
+    if(!hasSpots){cls='no-eggs';}
+    else if(island.isSpiral){cls='unclaimed';label='🌀 '+island.name;}
+    else if(onCooldown){cls='cooldown';label=fmt(remaining)||island.name;}
+    else if(isReady){cls='ready';label='✅ '+island.name;}
+    const click=hasSpots&&!island.isSpiral?`onclick="toggleIsland('${island.name.replace(/'/g,"\\'")}')"`:'';
+    return `<div class="island-pin" style="left:${island.mx}%;top:${island.my}%" ${click} title="${island.name}" data-island="${island.name}"><span class="pin-dot ${cls}"></span><span class="pin-label">${label}</span></div>`;
+  }).join('');
+}
 function renderIslands(){
   const now=Date.now(),q=islandSearch.toLowerCase();
   const filtered=ISLANDS.filter(i=>!q||i.name.toLowerCase().includes(q)||i.spawns.some(s=>s.egg.toLowerCase().includes(q)));
