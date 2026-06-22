@@ -569,7 +569,7 @@ async function logout(){
   try{await fetch(LOVABLE_URL+'/api/public/logout',{method:'POST',headers:sessionToken?{'Authorization':'Bearer '+sessionToken}:{}});}catch(e){}
   currentUser=null;sessionToken=null;
   localStorage.removeItem('httyd_session');
-  timers={};save();renderAuthBar();renderIslands();renderMapPins();
+  timers={};save();renderAuthBar();renderIslands();renderMapPins();renderIslandPins();
 }
 
 function renderAuthBar(){
@@ -619,7 +619,7 @@ async function loadCloudTimers(){
       const data=await res.json();
       timers={};
       if(data.cooldowns){data.cooldowns.forEach(c=>{timers[c.island_name]=new Date(c.collected_at).getTime();});}
-      renderIslands();renderMapPins();
+      renderIslands();renderMapPins();renderIslandPins();
     }
   }catch(e){}
 }
@@ -640,9 +640,9 @@ let islandSearch='';
 function save(){localStorage.setItem('httyd_v3_timers',JSON.stringify(timers));localStorage.setItem('httyd_v3_spiral',JSON.stringify(spiralData));}
 function fmt(ms){if(ms<=0)return null;const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000),s=Math.floor((ms%60000)/1000);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
 function switchTab(tab){['islands','map','spiral'].forEach(t=>document.getElementById(t+'Tab').classList.toggle('active',t===tab));document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['islands','map','spiral'][i]===tab));if(tab==='map')renderMapPins();}
-function toggleIsland(name){if(timers[name]){showModal('Reset Cooldown','Reset cooldown for '+name+'?',()=>{delete timers[name];apiReset(name);save();renderIslands();renderMapPins();});}else{timers[name]=Date.now();apiCollect(name);save();renderIslands();renderMapPins();}}
-function collectAll(){const now=Date.now();ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).forEach(i=>{timers[i.name]=now;apiCollect(i.name);});save();renderIslands();renderMapPins();}
-function resetAll(){showModal('Reset All Cooldowns','This will clear all island cooldowns. Are you sure?',()=>{if(currentUser){ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).forEach(i=>apiReset(i.name));}timers={};save();renderIslands();renderMapPins();});}
+function toggleIsland(name){if(timers[name]){showModal('Reset Cooldown','Reset cooldown for '+name+'?',()=>{delete timers[name];apiReset(name);save();renderIslands();renderMapPins();renderIslandPins();});}else{timers[name]=Date.now();apiCollect(name);save();renderIslands();renderMapPins();renderIslandPins();}}
+function collectAll(){const now=Date.now();ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).forEach(i=>{timers[i.name]=now;apiCollect(i.name);});save();renderIslands();renderMapPins();renderIslandPins();}
+function resetAll(){showModal('Reset All Cooldowns','This will clear all island cooldowns. Are you sure?',()=>{if(currentUser){ISLANDS.filter(i=>i.spots>0&&!i.isSpiral).forEach(i=>apiReset(i.name));}timers={};save();renderIslands();renderMapPins();renderIslandPins();});}
 function renderIslands(){
   const now=Date.now(),q=islandSearch.toLowerCase();
   const filtered=ISLANDS.filter(i=>!q||i.name.toLowerCase().includes(q)||i.spawns.some(s=>s.egg.toLowerCase().includes(q)));
