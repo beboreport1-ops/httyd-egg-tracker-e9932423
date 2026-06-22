@@ -274,6 +274,14 @@
   .egg-modal{background:#120a05;color:var(--amber);border:1.5px solid var(--fire);border-radius:10px;box-shadow:0 0 28px rgba(232,84,10,0.5);max-width:340px;width:100%;max-height:85vh;overflow-y:auto;padding:14px 16px;position:relative;}
   .egg-modal-close{position:absolute;top:6px;right:10px;background:none;border:none;color:var(--amber);font-size:22px;cursor:pointer;line-height:1;}
   .egg-modal img{max-width:100%;border-radius:6px;margin-top:8px;}
+  .egg-status{margin:8px 0;padding:8px 10px;border-radius:8px;font-size:0.78rem;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid;}
+  .egg-status.ready{background:rgba(46,204,113,0.12);border-color:#2ecc71;color:#7ce8a0;}
+  .egg-status.cooldown{background:rgba(155,89,182,0.12);border-color:var(--epic);color:#c79bdf;}
+  .egg-status.unclaimed{background:rgba(240,165,0,0.08);border-color:rgba(240,165,0,0.4);color:var(--amber);}
+  .egg-status-time{font-weight:700;font-variant-numeric:tabular-nums;}
+  .egg-modal-btn{margin-top:6px;width:100%;padding:9px 12px;border-radius:7px;border:1px solid var(--fire);background:linear-gradient(180deg,#2a1810,#1a0e08);color:var(--amber);font-family:'Cinzel',serif;font-size:0.82rem;letter-spacing:0.5px;cursor:pointer;}
+  .egg-modal-btn:hover{background:#3a1f12;color:#fff;}
+  .egg-modal-btn.reset{border-color:var(--epic);color:#c79bdf;}
   .httyd-popup img{width:100%;height:auto;border-radius:5px;margin-top:6px;border:1px solid rgba(232,84,10,0.3);}
   .httyd-popup .popup-empty{color:var(--muted);}
   .httyd-marker-icon{filter:drop-shadow(0 2px 4px rgba(0,0,0,0.95)) drop-shadow(0 0 3px rgba(232,84,10,0.55));transition:transform 0.15s;}
@@ -639,10 +647,7 @@ function initLeafletMap(){
   MAP_MARKERS.forEach(m=>{
     const icon=eggIcon;
     const marker=L.marker(map.unproject([m.X,m.Y],1),{icon}).addTo(map);
-    const img=m.image?`<img src="${m.image}" alt="${m.title}" onerror="this.style.display='none'">`:'';
-    const desc=m.description||'<em class="popup-empty">No description yet.</em>';
-    const html=`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${img}</div>`;
-    marker.on('click',()=>showEggModal(html));
+    marker.on('click',()=>openEggMarker(m));
   });
   setTimeout(()=>map.invalidateSize(),100);
 }
@@ -655,6 +660,42 @@ function showEggModal(html){
   document.body.appendChild(b);
 }
 function closeEggModal(){const b=document.getElementById('eggModalBackdrop');if(b)b.remove();}
+function islandFromMarker(m){
+  let t=m.title;
+  if(t==='Spiral Island Spawn Egg')return ISLANDS.find(i=>i.isSpiral)||null;
+  const base=t.replace(/\s+Egg Spawn\s+\d+$/,'');
+  return ISLANDS.find(i=>i.name===base)||ISLANDS.find(i=>i.name.startsWith(base))||null;
+}
+function openEggMarker(m){
+  const island=islandFromMarker(m);
+  const img=m.image?`<img src="${m.image}" alt="${m.title}" onerror="this.style.display='none'">`:'';
+  const desc=m.description||'<em class="popup-empty">No description yet.</em>';
+  let statusHTML='';
+  if(island && !island.isSpiral && island.spots>0){
+    const now=Date.now(),claimedAt=timers[island.name];
+    const remaining=claimedAt?(6*3600000-(now-claimedAt)):null;
+    const onCooldown=remaining!==null&&remaining>0;
+    const isReady=claimedAt&&!onCooldown;
+    if(onCooldown){
+      statusHTML=`<div class="egg-status cooldown"><span>⏳ On cooldown</span><span class="egg-status-time" data-island="${island.name}">${fmt(remaining)}</span></div><button class="egg-modal-btn reset" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')">↺ Reset cooldown</button>`;
+    } else if(isReady){
+      statusHTML=`<div class="egg-status ready"><span>✅ Respawned · Ready!</span></div><button class="egg-modal-btn" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')"><img class="ic" src="/map/egg.png" alt=""> Mark collected</button>`;
+    } else {
+      statusHTML=`<div class="egg-status unclaimed"><span>🥚 Unclaimed</span></div><button class="egg-modal-btn" onclick="markerToggle('${island.name.replace(/'/g,"\\'")}')"><img class="ic" src="/map/egg.png" alt=""> Mark collected</button>`;
+    }
+  } else if(island && island.isSpiral){
+    statusHTML=`<div class="egg-status unclaimed"><span>🌀 Tracked in Spiral tab</span></div>`;
+  }
+  const html=`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${statusHTML}${img}</div>`;
+  showEggModal(html);
+  window._currentMarker=m;
+}
+function markerToggle(name){
+  if(timers[name]){delete timers[name];apiReset(name);}
+  else{timers[name]=Date.now();apiCollect(name);}
+  save();renderIslands();
+  if(window._currentMarker)openEggMarker(window._currentMarker);
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEggModal();});
 function toggleMapFullscreen(){
   const w=document.getElementById('mapWrap');
@@ -711,7 +752,7 @@ function renderSpiral(){
 }
 function tick(){
   const now=Date.now();
-  ISLANDS.forEach(island=>{const claimedAt=timers[island.name];if(!claimedAt)return;const remaining=6*3600000-(now-claimedAt);const el=document.getElementById('it_'+island.num);if(el){const cd=fmt(remaining);if(cd)el.textContent=cd;else renderIslands();}});
+  ISLANDS.forEach(island=>{const claimedAt=timers[island.name];if(!claimedAt)return;const remaining=6*3600000-(now-claimedAt);const el=document.getElementById('it_'+island.num);if(el){const cd=fmt(remaining);if(cd)el.textContent=cd;else renderIslands();}const mEl=document.querySelector('.egg-status-time[data-island="'+island.name.replace(/"/g,'\\"')+'"]');if(mEl){const cd=fmt(remaining);if(cd)mEl.textContent=cd;else if(window._currentMarker)openEggMarker(window._currentMarker);}});
   SC.forEach(({key})=>{const d=spiralData[key];const s=discordSightings[key];const DESPAWN=50*60000;const spEl=document.getElementById('sp_'+key);if(spEl){if(d.spawnedAt){const left=DESPAWN-(now-d.spawnedAt);const cd=fmt(left);if(cd)spEl.textContent=cd;else{spiralData[key].spawnedAt=null;save();renderSpiral();}}else if(s&&s.spottedAt&&(now-s.spottedAt)<DESPAWN){const left=DESPAWN-(now-s.spottedAt);const cd=fmt(left);if(cd)spEl.textContent=cd;else{discordSightings[key]=null;renderSpiral();}}}const cdEl=document.getElementById('scd_'+key);if(cdEl&&d.pickedAt){const cd=fmt(6*3600000-(now-d.pickedAt));if(cd)cdEl.textContent=cd;}});
   const n=new Date(),mins=n.getMinutes(),secs=n.getSeconds();
   const el=document.getElementById('nextCheckTimer');if(el)el.textContent=fmt((mins<30?30-mins:60-mins)*60000-secs*1000)||'00:00:00';
