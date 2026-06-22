@@ -641,7 +641,8 @@ function initLeafletMap(){
     const marker=L.marker(map.unproject([m.X,m.Y],1),{icon}).addTo(map);
     const img=m.image?`<img src="${m.image}" alt="${m.title}" onerror="this.style.display='none'">`:'';
     const desc=m.description||'<em class="popup-empty">No description yet.</em>';
-    marker.bindPopup(`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${img}</div>`,{maxWidth:280,minWidth:220});
+    const html=`<div class="httyd-popup"><h4>${m.title}</h4><div class="popup-body">${desc}</div>${img}</div>`;
+    marker.on('click',()=>showEggModal(html));
   });
   setTimeout(()=>map.invalidateSize(),100);
 }
