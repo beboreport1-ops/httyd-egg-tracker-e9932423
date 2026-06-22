@@ -306,12 +306,32 @@
   .spiral-btn.pickup:hover{box-shadow:inset 0 1px 0 rgba(255,180,90,0.06),0 0 12px rgba(240,165,0,0.5);}
   .spiral-btn.reset:hover{border-color:var(--mythic);color:var(--mythic);box-shadow:0 0 12px rgba(255,68,68,0.5);}
 
-  .discord-sighting{display:flex;align-items:center;gap:8px;background:rgba(88,101,242,0.08);border:1px solid rgba(88,101,242,0.35);border-radius:8px;padding:8px 11px;margin-bottom:10px;font-size:0.7rem;}
-  .discord-sighting .ds-icon{font-size:1rem;flex-shrink:0;}
-  .discord-sighting .ds-text{color:var(--muted);line-height:1.4;}
-  .discord-sighting .ds-text strong{color:var(--text);}
-  .discord-sighting .ds-time{color:var(--muted);font-size:0.62rem;margin-left:auto;flex-shrink:0;}
-  .discord-sighting.fresh .ds-text strong{color:var(--common);text-shadow:0 0 6px rgba(46,204,113,0.5);}
+  /* Berk Herald announcement — HTTYD themed */
+  .discord-sighting{
+    position:relative;display:flex;align-items:center;gap:10px;
+    background:
+      linear-gradient(180deg, rgba(232,84,10,0.12), rgba(20,8,4,0.55)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 8px),
+      #160a06;
+    border:1px solid rgba(232,84,10,0.55);
+    border-left:4px solid var(--fire);
+    border-radius:4px;
+    padding:8px 11px 8px 12px;margin-bottom:10px;font-size:0.7rem;
+    box-shadow:inset 0 0 14px rgba(232,84,10,0.18), 0 0 10px rgba(232,84,10,0.25);
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%);
+  }
+  .discord-sighting .ds-icon{
+    font-size:1.05rem;flex-shrink:0;color:var(--amber);
+    filter:drop-shadow(0 0 5px rgba(232,84,10,0.8));
+  }
+  .discord-sighting .ds-text{color:var(--muted);line-height:1.4;font-family:'Cinzel',serif;letter-spacing:0.5px;}
+  .discord-sighting .ds-text strong{color:var(--amber);font-weight:700;}
+  .discord-sighting .ds-time{
+    color:var(--ember);font-size:0.6rem;margin-left:auto;flex-shrink:0;
+    font-family:'Cinzel',serif;letter-spacing:1px;text-transform:uppercase;
+  }
+  .discord-sighting.fresh{border-color:rgba(46,204,113,0.55);box-shadow:inset 0 0 14px rgba(46,204,113,0.18),0 0 10px rgba(46,204,113,0.3);}
+  .discord-sighting.fresh .ds-text strong{color:var(--common);text-shadow:0 0 6px rgba(46,204,113,0.6);}
 
   /* Auth bar with dragon-themed styling */
   .auth-bar{
